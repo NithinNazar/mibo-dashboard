@@ -5,73 +5,85 @@ export const menu = [
     listItems: [
       {
         id: 1,
-        title: "Homepage",
+        title: "Dashboard",
         url: "/",
         icon: "home.svg",
       },
       {
         id: 2,
-        title: "Profile",
+        title: "Centres",
+        url: "/",
+        icon: "centre.svg",
+      },
+      {
+        id: 3,
+        title: "Doctors",
         url: "/users/1",
-        icon: "user.svg",
+        icon: "doctor.svg",
       },
     ],
   },
   {
     id: 2,
-    title: "lists",
+    title: "actions",
     listItems: [
       {
         id: 1,
-        title: "Users",
+        title: "Registered Patients",
         url: "/users",
         icon: "user.svg",
       },
       {
         id: 2,
-        title: "Products",
-        url: "/products",
-        icon: "product.svg",
+        title: "Appointments",
+        url: "/users",
+        icon: "appointment.svg",
       },
       {
         id: 3,
-        title: "Orders",
+        title: "Slots Management",
         url: "/orders",
         icon: "order.svg",
       },
       {
         id: 4,
-        title: "Posts",
+        title: "Reports",
         url: "/posts",
-        icon: "post2.svg",
+        icon: "reports.svg",
       },
     ],
   },
   {
     id: 3,
-    title: "general",
+    title: "staffs",
     listItems: [
       {
         id: 1,
-        title: "Elements",
+        title: "Admin",
         url: "/",
-        icon: "element.svg",
+        icon: "admin.svg",
       },
       {
         id: 2,
-        title: "Notes",
+        title: "Manager",
         url: "/",
-        icon: "note.svg",
+        icon: "manager.svg",
       },
       {
         id: 3,
-        title: "Forms",
+        title: "Centre Manager",
         url: "/",
         icon: "form.svg",
       },
       {
         id: 4,
-        title: "Calendar",
+        title: "Care Coordinator",
+        url: "/",
+        icon: "calendar.svg",
+      },
+      {
+        id: 4,
+        title: "Front Desk",
         url: "/",
         icon: "calendar.svg",
       },
@@ -119,59 +131,59 @@ export const topDealUsers = [
   {
     id: 1,
     img: "https://images.pexels.com/photos/8405873/pexels-photo-8405873.jpeg?auto=compress&cs=tinysrgb&w=1600&lazy=load",
-    username: "Elva McDonald",
-    email: "elva@gmail.com",
-    amount: "3.668",
+    username: "Dr.Elva Thomas",
+    email: "Adult Therapist",
+    amount: "366",
   },
   {
     id: 2,
     img: "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=1600",
-    username: "Linnie Nelson",
-    email: "linnie@gmail.com",
-    amount: "3.256",
+    username: "Dr.Linnie Nelson",
+    email: "Child Therapist",
+    amount: "325",
   },
   {
     id: 3,
     img: "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=1600",
-    username: "Brent Reeves",
-    email: "brent@gmail.com",
-    amount: "2.998",
+    username: "Dr.Ranjit Singh",
+    email: "Psychiatrist",
+    amount: "299",
   },
   {
     id: 4,
     img: "https://images.pexels.com/photos/733872/pexels-photo-733872.jpeg?auto=compress&cs=tinysrgb&w=1600",
-    username: "Adeline Watson",
-    email: "adeline@gmail.com",
-    amount: "2.512",
+    username: "Dr.Nyla Gupta",
+    email: "Couple Therapist",
+    amount: "251",
   },
   {
     id: 5,
     img: "https://images.pexels.com/photos/91227/pexels-photo-91227.jpeg?auto=compress&cs=tinysrgb&w=1600",
-    username: "Juan Harrington",
-    email: "juan@gmail.com",
-    amount: "2.134",
+    username: "Dr.Dev Patel",
+    email: "Psychologist",
+    amount: "213",
   },
-  {
-    id: 6,
-    img: "https://images.pexels.com/photos/1681010/pexels-photo-1681010.jpeg?auto=compress&cs=tinysrgb&w=1600",
-    username: "Augusta McGee",
-    email: "augusta@gmail.com",
-    amount: "1.932",
-  },
-  {
-    id: 7,
-    img: "https://images.pexels.com/photos/874158/pexels-photo-874158.jpeg?auto=compress&cs=tinysrgb&w=1600",
-    username: "Angel Thomas",
-    email: "angel@gmail.com",
-    amount: "1.560",
-  },
+  // {
+  //   id: 6,
+  //   img: "https://images.pexels.com/photos/1681010/pexels-photo-1681010.jpeg?auto=compress&cs=tinysrgb&w=1600",
+  //   username: "Ajith Kumar",
+  //   email: "Behavioral Therapist",
+  //   amount: "193",
+  // },
+  // {
+  //   id: 7,
+  //   img: "https://images.pexels.com/photos/874158/pexels-photo-874158.jpeg?auto=compress&cs=tinysrgb&w=1600",
+  //   username: "Angel Thomas",
+  //   email: "Deaddiction Therapist",
+  //   amount: "156",
+  // },
 ];
 
 export const chartBoxUser = {
   color: "#8884d8",
   icon: "/userIcon.svg",
-  title: "Total Users",
-  number: "11.238",
+  title: "Total Patients",
+  number: "11238",
   dataKey: "users",
   percentage: 45,
   chartData: [
@@ -188,7 +200,7 @@ export const chartBoxUser = {
 export const chartBoxProduct = {
   color: "skyblue",
   icon: "/productIcon.svg",
-  title: "Total Products",
+  title: "Active Doctors",
   number: "238",
   dataKey: "products",
   percentage: 21,
@@ -206,7 +218,7 @@ export const chartBoxRevenue = {
   color: "teal",
   icon: "/revenueIcon.svg",
   title: "Total Revenue",
-  number: "$56.432",
+  number: "₹1643205",
   dataKey: "revenue",
   percentage: -12,
   chartData: [
@@ -222,8 +234,8 @@ export const chartBoxRevenue = {
 export const chartBoxConversion = {
   color: "gold",
   icon: "/conversionIcon.svg",
-  title: "Total Ratio",
-  number: "2.6",
+  title: "Follow Ups Booked",
+  number: "182",
   dataKey: "ratio",
   percentage: 12,
   chartData: [
@@ -455,107 +467,7 @@ export const userRows = [
   },
 ];
 
-export const products = [
-  {
-    id: 1,
-    img: "https://store.sony.com.au/on/demandware.static/-/Sites-sony-master-catalog/default/dw1b537bbb/images/PLAYSTATION5W/PLAYSTATION5W.png",
-    title: "Playstation 5 Digital Edition",
-    color: "white",
-    producer: "Sony",
-    price: "$250.99",
-    createdAt: "01.02.2023",
-    inStock: true,
-  },
-  {
-    id: 2,
-    img: "https://www.pngmart.com/files/6/Dell-Laptop-PNG-Image.png",
-    title: "Dell Laptop KR211822",
-    color: "black",
-    producer: "Dell",
-    price: "$499.99",
-    createdAt: "01.02.2023",
-    inStock: true,
-  },
-  {
-    id: 3,
-    img: "http://images.samsung.com/is/image/samsung/uk-led-tv-hg40ed670ck-hg40ed670ckxxu-001-front",
-    title: "Samsung TV 4K SmartTV",
-    color: "gray",
-    producer: "Samsung",
-    price: "$999.49",
-    createdAt: "01.02.2023",
-    inStock: true,
-  },
-  {
-    id: 4,
-    img: "https://raylo.imgix.net/iphone-14-blue.png",
-    title: "Apple Iphone 14 Pro Max",
-    color: "white",
-    producer: "Apple",
-    price: "$799.49",
-    createdAt: "01.02.2023",
-    inStock: true,
-  },
-  {
-    id: 5,
-    img: "https://www.signify.com/b-dam/signify/en-aa/about/news/2020/20200903-movie-night-essentials-popcorn-ice-cream-and-the-new-philips-hue-play-gradient-lightstrip/packaging-lighstrip.png",
-    title: "Philips Hue Play Gradient",
-    color: "rainbow",
-    producer: "Philips",
-    price: "$39.99",
-    createdAt: "01.02.2023",
-  },
-  {
-    id: 6,
-    img: "https://www.smartworld.it/wp-content/uploads/2019/09/High_Resolution_PNG-MX-Master-3-LEFT-GRAPHITE.png",
-    title: "Logitech MX Master 3",
-    color: "black",
-    producer: "Logitech",
-    price: "$59.49",
-    createdAt: "01.02.2023",
-    inStock: true,
-  },
-  {
-    id: 7,
-    img: "https://www.pngarts.com/files/7/Podcast-Mic-PNG-Picture.png",
-    title: "Rode Podcast Microphone",
-    color: "gray",
-    producer: "Rode",
-    price: "$119.49",
-    createdAt: "01.02.2023",
-  },
-  {
-    id: 8,
-    img: "https://5.imimg.com/data5/SW/VM/MY-5774620/toshiba-split-ac-2-ton-3-star-rated-ras-24s3ks-500x500.png",
-    title: "Toshiba Split AC 2",
-    color: "white",
-    producer: "Toshiba",
-    price: "$899.99",
-    createdAt: "01.02.2023",
-    inStock: true,
-  },
-  {
-    id: 9,
-    img: "https://img.productz.com/review_image/102489/preview_sony-kdl-50w800b-50-inch-hdtv-review-superb-picture-102489.png",
-    title: "Sony Bravia KDL-47W805A",
-    color: "black",
-    producer: "Sony",
-    price: "$970.49",
-    createdAt: "01.02.2023",
-  },
-  {
-    id: 10,
-    img: "https://venturebeat.com/wp-content/uploads/2015/07/As_AO1-131_gray_nonglare_win10_03.png?fit=1338%2C1055&strip=all",
-    title: "Acer Laptop 16 KL-4804",
-    color: "black",
-    producer: "Acer",
-    price: "$599.99",
-    createdAt: "01.02.2023",
-    inStock: true,
-  },
-];
-
-
+export const products = [];
 
 export const singleUser = {
   id: 1,
@@ -613,27 +525,27 @@ export const singleUser = {
   },
   activities: [
     {
-      text: "John Doe purchased Playstation 5 Digital Edition",
+      text: "John Doe ",
       time: "3 day ago",
     },
     {
-      text: "John Doe added 3 items into their wishlist",
+      text: "John Doe ",
       time: "1 week ago",
     },
     {
-      text: "John Doe purchased Sony Bravia KD-32w800",
+      text: "John Doe ",
       time: "2 weeks ago",
     },
     {
-      text: "John Doe reviewed a product",
+      text: "John Doe ",
       time: "1 month ago",
     },
     {
-      text: "John Doe added 1 items into their wishlist",
+      text: "John Doe ",
       time: "1 month ago",
     },
     {
-      text: "John Doe reviewed a product",
+      text: "John Doe ",
       time: "2 months ago",
     },
   ],
@@ -643,9 +555,9 @@ export const singleProduct = {
   title: "Playstation 5 Digital Edition",
   img: "https://store.sony.com.au/on/demandware.static/-/Sites-sony-master-catalog/default/dw1b537bbb/images/PLAYSTATION5W/PLAYSTATION5W.png",
   info: {
-    productId: "Ps5SDF1156d",
-    color: "white",
-    price: "$250.99",
+    Id: "Ps5SDF1156d",
+    name: "white",
+    doctor: "$250.99",
     producer: "Sony",
     export: "Japan",
   },
@@ -694,28 +606,62 @@ export const singleProduct = {
   },
   activities: [
     {
-      text: "John Doe purchased Playstation 5 Digital Edition",
+      text: "John Doe",
       time: "3 day ago",
     },
     {
-      text: "Jane Doe added Playstation 5 Digital Edition into their wishlist",
+      text: "Jane Doe",
       time: "1 week ago",
     },
     {
-      text: "Mike Doe purchased Playstation 5 Digital Edition",
+      text: "Mike Doe",
       time: "2 weeks ago",
     },
     {
-      text: "Anna Doe reviewed the product",
+      text: "Anna Doe ",
       time: "1 month ago",
     },
     {
-      text: "Michael Doe added Playstation 5 Digital Edition into their wishlist",
+      text: "Michael Doe",
       time: "1 month ago",
     },
     {
-      text: "Helen Doe reviewed the product",
+      text: "Helen Doe",
       time: "2 months ago",
     },
   ],
 };
+// ======================
+// Today's Appointments
+// ======================
+export const todayAppointments = [
+  { patient: "Anita Menon", doctor: "Dr. Elva Thomas", centre: "Kochi" },
+  { patient: "Rahul Nair", doctor: "Dr. Linnie Nelson", centre: "Bangalore" },
+  { patient: "Suresh Iyer", doctor: "Dr. Ranjit Singh", centre: "Mumbai" },
+  { patient: "Meera Joseph", doctor: "Dr. Nyla Gupta", centre: "Kochi" },
+  { patient: "Arjun Rao", doctor: "Dr. Dev Patel", centre: "Bangalore" },
+];
+
+// ======================
+// Upcoming Appointments
+// ======================
+export const upcomingAppointments = [
+  { patient: "Kavya Nair", doctor: "Dr. Elva Thomas", centre: "Mumbai" },
+  { patient: "Rohit Menon", doctor: "Dr. Ajith Kumar", centre: "Kochi" },
+  { patient: "Divya Iyer", doctor: "Dr. Angel Thomas", centre: "Bangalore" },
+  { patient: "Neha Sharma", doctor: "Dr. Linnie Nelson", centre: "Mumbai" },
+  { patient: "Vikram Singh", doctor: "Dr. Ranjit Singh", centre: "Kochi" },
+  { patient: "Sneha Pillai", doctor: "Dr. Nyla Gupta", centre: "Bangalore" },
+];
+
+// ======================
+// Doctor Availability
+// ======================
+export const doctorAvailability = [
+  { name: "Dr. Elva Thomas", centre: "Kochi", status: "Available" },
+  { name: "Dr. Linnie Nelson", centre: "Bangalore", status: "Unavailable" },
+  { name: "Dr. Ranjit Singh", centre: "Mumbai", status: "Available" },
+  { name: "Dr. Nyla Gupta", centre: "Kochi", status: "Available" },
+  { name: "Dr. Dev Patel", centre: "Bangalore", status: "Unavailable" },
+  { name: "Dr. Ajith Kumar", centre: "Mumbai", status: "Available" },
+];

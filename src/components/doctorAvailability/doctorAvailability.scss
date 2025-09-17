@@ -1,0 +1,43 @@
+.doctorAvailability {
+  background-color: #1e1e2d;
+  padding: 16px;
+  border-radius: 12px;
+
+  h2 {
+    font-size: 16px;
+    margin-bottom: 12px;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+
+    li {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #333;
+      font-size: 14px;
+
+      .doctor {
+        font-weight: 500;
+        color: #fff;
+      }
+      .centre {
+        color: #aaa;
+      }
+      .status {
+        font-weight: 600;
+        &.available {
+          color: #00c896;
+        }
+        &.unavailable {
+          color: #e63946;
+        }
+      }
+    }
+  }
+}
