@@ -9,7 +9,7 @@ import BookAppointmentNow from "../../components/bookAppointment/BookAppointment
 import DoctorAvailability from "../../components/doctorAvailability/DoctorAvailability";
 
 import {
-  barChartBoxRevenue,
+  // barChartBoxRevenue,
   barChartBoxVisit,
   chartBoxConversion,
   chartBoxProduct,
