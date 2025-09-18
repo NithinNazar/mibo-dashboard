@@ -18,8 +18,8 @@
     align-items: center;
     gap: 20px;
 
-    .icon{
-      @include sm{
+    .icon {
+      @include sm {
         display: none;
       }
     }

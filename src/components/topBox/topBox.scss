@@ -2,55 +2,73 @@
 
 .topBox {
   h1 {
-    margin-bottom: 20px;
+    margin-bottom: 16px; // slightly smaller gap
 
-    @include xxl{
+    @include xxl {
       font-size: 24px;
+    }
+    @include sm {
+      font-size: 18px; // smaller heading on mobile
     }
   }
 
   .list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px; // replaces margin-bottom stacking
+
     .listItem {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 30px;
+      padding: 6px 0;
 
       .user {
         display: flex;
-        gap: 20px;
+        gap: 12px;
 
         img {
-          width: 40px;
-          height: 40px;
+          width: 36px;
+          height: 36px;
           border-radius: 50%;
           object-fit: cover;
 
-          @include xxl{
+          @include xxl {
             display: none;
           }
-          @include lg{
+          @include lg {
             display: block;
+          }
+          @include sm {
+            width: 28px;
+            height: 28px;
           }
         }
 
         .userTexts {
           display: flex;
           flex-direction: column;
-          gap: 5px;
+          gap: 2px;
 
           .username {
             font-size: 14px;
             font-weight: 500;
+
+            @include sm {
+              font-size: 12px;
+            }
           }
           .email {
             font-size: 12px;
 
-            @include xxl{
+            @include xxl {
               display: none;
             }
-            @include lg{
+            @include lg {
               display: block;
+            }
+            @include sm {
+              font-size: 11px;
             }
           }
         }
@@ -58,7 +76,85 @@
 
       .amount {
         font-weight: 500;
+        font-size: 13px;
+
+        @include sm {
+          font-size: 12px;
+        }
       }
     }
   }
+
+  // Limit box height and allow scroll if content grows
+  max-height: 300px;
+  overflow-y: auto;
+
+  @include sm {
+    max-height: 240px;
+  }
 }
+
+// @import "../../styles/responsive.scss";
+
+// .topBox {
+//   h1 {
+//     margin-bottom: 20px;
+
+//     @include xxl{
+//       font-size: 24px;
+//     }
+//   }
+
+//   .list {
+//     .listItem {
+//       display: flex;
+//       align-items: center;
+//       justify-content: space-between;
+//       margin-bottom: 30px;
+
+//       .user {
+//         display: flex;
+//         gap: 20px;
+
+//         img {
+//           width: 40px;
+//           height: 40px;
+//           border-radius: 50%;
+//           object-fit: cover;
+
+//           @include xxl{
+//             display: none;
+//           }
+//           @include lg{
+//             display: block;
+//           }
+//         }
+
+//         .userTexts {
+//           display: flex;
+//           flex-direction: column;
+//           gap: 5px;
+
+//           .username {
+//             font-size: 14px;
+//             font-weight: 500;
+//           }
+//           .email {
+//             font-size: 12px;
+
+//             @include xxl{
+//               display: none;
+//             }
+//             @include lg{
+//               display: block;
+//             }
+//           }
+//         }
+//       }
+
+//       .amount {
+//         font-weight: 500;
+//       }
+//     }
+//   }
+// }

@@ -1,29 +1,42 @@
+@import "../../styles/responsive.scss";
+
 .todayAppointments {
   background-color: #1e1e2d;
   padding: 16px;
   border-radius: 12px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
 
   h2 {
     font-size: 18px;
     margin-bottom: 12px;
     font-weight: 600;
     color: #fff;
+
+    @include sm {
+      font-size: 16px;
+    }
   }
 
   ul {
     list-style: none;
     margin: 0;
     padding: 0;
+    flex: 1;
+    overflow-y: auto; // allow scroll if too many appointments
+    max-height: 220px; // same height as upcomingAppointments
 
     li {
       display: flex;
       justify-content: space-between;
-      padding: 8px 0;
+      align-items: center;
+      padding: 6px 0;
       border-bottom: 1px solid #333;
       font-size: 14px;
+
+      @include sm {
+        font-size: 12px;
+      }
 
       .patient {
         font-weight: 500;
@@ -31,10 +44,19 @@
       }
       .doctor {
         color: #aaa;
+        font-size: 13px;
+
+        @include sm {
+          font-size: 11px;
+        }
       }
       .centre {
         color: #00c896;
         font-size: 13px;
+
+        @include sm {
+          font-size: 11px;
+        }
       }
     }
   }
@@ -52,6 +74,11 @@
 
     &:hover {
       background-color: #00a67c;
+    }
+
+    @include sm {
+      padding: 6px 10px;
+      font-size: 12px;
     }
   }
 }

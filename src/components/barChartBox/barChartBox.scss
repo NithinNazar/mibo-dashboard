@@ -1,12 +1,36 @@
-.barChartBox{
-  width: 100%;
-  height: 100%;
+@import "../../styles/responsive.scss";
 
-  h1{
+.barChartBox {
+  width: 100%;
+  height: auto; // don't force full height
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  h1 {
     font-size: 20px;
-    margin-bottom: 20px;
+    font-weight: 600;
+    margin-bottom: 8px;
+
+    @include sm {
+      font-size: 16px;
+    }
   }
 
-  .chart{
+  .chart {
+    width: 100%;
+    max-height: 280px; // cap height on desktop
+    min-height: 160px; // keep visible even when small
+    flex: 1;
+
+    canvas {
+      width: 100% !important;
+      height: auto !important; // scale properly on small screens
+    }
+
+    @include sm {
+      max-height: 180px;
+      min-height: 120px;
+    }
   }
 }

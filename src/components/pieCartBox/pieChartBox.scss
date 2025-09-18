@@ -1,15 +1,21 @@
 @import "../../styles/responsive.scss";
 
-
 .pieChartBox {
-  height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  gap: 16px;
+  height: auto; // don’t force 100% height
 
-  h1{
-    @include xxl{
-      font-size: 24px;
+  h1 {
+    font-size: 18px;
+    font-weight: 600;
+
+    @include xxl {
+      font-size: 22px;
+    }
+    @include sm {
+      font-size: 16px;
     }
   }
 
@@ -18,24 +24,43 @@
     align-items: center;
     justify-content: center;
     width: 100%;
-    height: 100%;
+
+    // limit chart height
+    max-height: 260px;
+    min-height: 180px;
+
+    canvas {
+      width: 100% !important;
+      height: auto !important; // shrink properly on small screens
+    }
+
+    @include sm {
+      max-height: 200px;
+      min-height: 140px;
+    }
   }
 
   .options {
     display: flex;
     justify-content: space-between;
+    flex-wrap: wrap;
     gap: 10px;
     font-size: 14px;
+
+    @include sm {
+      font-size: 12px;
+      gap: 6px;
+    }
 
     .option {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 6px;
       align-items: center;
 
       .title {
         display: flex;
-        gap: 10px;
+        gap: 6px;
         align-items: center;
 
         .dot {

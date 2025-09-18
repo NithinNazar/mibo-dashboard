@@ -1,19 +1,41 @@
 @import "../../styles/responsive.scss";
 
-.bigChartBox{
+.bigChartBox {
   width: 100%;
-  height: 100%;
+  height: auto; // let content decide height
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  gap: 16px;
 
-  h1{
-    @include xxl{
+  h1 {
+    font-size: 20px;
+    font-weight: 600;
+
+    @include xxl {
       font-size: 24px;
     }
+    @include sm {
+      font-size: 16px;
+    }
   }
-  .chart{
+
+  .chart {
     width: 100%;
-    height: 300px;
+    height: 280px; // ✅ force a usable default height
+    max-height: 300px; // cap on desktop
+    min-height: 200px; // keeps visibility
+    flex: 1;
+
+    canvas {
+      width: 100% !important;
+      height: 100% !important; // ✅ fill parent instead of auto
+    }
+
+    @include sm {
+      height: 200px; // smaller on mobile
+      min-height: 160px;
+      max-height: 220px;
+    }
   }
 }

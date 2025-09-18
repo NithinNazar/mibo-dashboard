@@ -1,26 +1,43 @@
+@import "../../styles/responsive.scss";
+
 .doctorAvailability {
   background-color: #1e1e2d;
   padding: 16px;
   border-radius: 12px;
+  display: flex;
+  flex-direction: column;
 
   h2 {
     font-size: 16px;
     margin-bottom: 12px;
     font-weight: 600;
     color: #fff;
+
+    @include sm {
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
   }
 
   ul {
     list-style: none;
     margin: 0;
     padding: 0;
+    flex: 1;
+    overflow-y: auto; // scroll if too many doctors
+    max-height: 200px; // keeps card compact
 
     li {
       display: flex;
       justify-content: space-between;
-      padding: 8px 0;
+      align-items: center;
+      padding: 6px 0;
       border-bottom: 1px solid #333;
       font-size: 14px;
+
+      @include sm {
+        font-size: 12px;
+      }
 
       .doctor {
         font-weight: 500;
@@ -28,9 +45,15 @@
       }
       .centre {
         color: #aaa;
+        font-size: 13px;
+
+        @include sm {
+          font-size: 11px;
+        }
       }
       .status {
         font-weight: 600;
+
         &.available {
           color: #00c896;
         }
