@@ -665,3 +665,342 @@ export const doctorAvailability = [
   { name: "Dr. Dev Patel", centre: "Bangalore", status: "Unavailable" },
   { name: "Dr. Ajith Kumar", centre: "Mumbai", status: "Available" },
 ];
+
+// src/data.ts
+export type Specialization =
+  | "Adult Psychiatrist"
+  | "Child Psychiatrist"
+  | "Psychologist"
+  | "Couple Psychologist";
+
+export interface Doctor {
+  name: string;
+  specialization: Specialization;
+  availability: boolean;
+  nextAvailableTime?: string;
+}
+
+export interface Centre {
+  name: string;
+  doctors: Doctor[];
+}
+
+export interface Location {
+  name: string;
+  centres: Centre[];
+}
+
+export const locations: Location[] = [
+  {
+    name: "Kochi",
+    centres: [
+      {
+        name: "Centre 1",
+        doctors: [
+          {
+            name: "Dr. Ranjit Singh",
+            specialization: "Adult Psychiatrist",
+            availability: true,
+            nextAvailableTime: "10:30 AM",
+          },
+          {
+            name: "Dr. Neha Sharma",
+            specialization: "Child Psychiatrist",
+            availability: false,
+          },
+          {
+            name: "Dr. Ajay Menon",
+            specialization: "Psychologist",
+            availability: true,
+            nextAvailableTime: "2:00 PM",
+          },
+          {
+            name: "Dr. Sneha Pillai",
+            specialization: "Couple Psychologist",
+            availability: false,
+          },
+          {
+            name: "Dr. Kiran Nair",
+            specialization: "Adult Psychiatrist",
+            availability: true,
+            nextAvailableTime: "4:15 PM",
+          },
+        ],
+      },
+      {
+        name: "Centre 2",
+        doctors: [
+          {
+            name: "Dr. Anjali Varma",
+            specialization: "Psychologist",
+            availability: true,
+            nextAvailableTime: "11:45 AM",
+          },
+          {
+            name: "Dr. Rohit Nair",
+            specialization: "Adult Psychiatrist",
+            availability: false,
+          },
+          {
+            name: "Dr. Kavya Rao",
+            specialization: "Child Psychiatrist",
+            availability: true,
+            nextAvailableTime: "3:30 PM",
+          },
+          {
+            name: "Dr. Dev Patel",
+            specialization: "Couple Psychologist",
+            availability: false,
+          },
+          {
+            name: "Dr. Priya Suresh",
+            specialization: "Adult Psychiatrist",
+            availability: true,
+            nextAvailableTime: "1:00 PM",
+          },
+        ],
+      },
+      {
+        name: "Centre 3",
+        doctors: [
+          {
+            name: "Dr. Elva Thomas",
+            specialization: "Adult Psychiatrist",
+            availability: true,
+            nextAvailableTime: "9:15 AM",
+          },
+          {
+            name: "Dr. Arjun Rao",
+            specialization: "Psychologist",
+            availability: false,
+          },
+          {
+            name: "Dr. Lina Kurian",
+            specialization: "Child Psychiatrist",
+            availability: true,
+            nextAvailableTime: "12:45 PM",
+          },
+          {
+            name: "Dr. Sunil Bhat",
+            specialization: "Couple Psychologist",
+            availability: true,
+            nextAvailableTime: "5:00 PM",
+          },
+          {
+            name: "Dr. Maria Joseph",
+            specialization: "Psychologist",
+            availability: false,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    name: "Bangalore",
+    centres: [
+      {
+        name: "Centre 1",
+        doctors: [
+          {
+            name: "Dr. Vikram Singh",
+            specialization: "Adult Psychiatrist",
+            availability: true,
+            nextAvailableTime: "11:00 AM",
+          },
+          {
+            name: "Dr. Nisha Iyer",
+            specialization: "Child Psychiatrist",
+            availability: false,
+          },
+          {
+            name: "Dr. Ajith Kumar",
+            specialization: "Couple Psychologist",
+            availability: true,
+            nextAvailableTime: "2:30 PM",
+          },
+          {
+            name: "Dr. Shruti Menon",
+            specialization: "Psychologist",
+            availability: true,
+            nextAvailableTime: "4:00 PM",
+          },
+          {
+            name: "Dr. Rajeev Pillai",
+            specialization: "Adult Psychiatrist",
+            availability: false,
+          },
+        ],
+      },
+      {
+        name: "Centre 2",
+        doctors: [
+          {
+            name: "Dr. Aditi Sharma",
+            specialization: "Child Psychiatrist",
+            availability: true,
+            nextAvailableTime: "1:15 PM",
+          },
+          {
+            name: "Dr. Manoj Varghese",
+            specialization: "Psychologist",
+            availability: false,
+          },
+          {
+            name: "Dr. Sneha Rao",
+            specialization: "Couple Psychologist",
+            availability: true,
+            nextAvailableTime: "3:45 PM",
+          },
+          {
+            name: "Dr. Abhay Patil",
+            specialization: "Adult Psychiatrist",
+            availability: false,
+          },
+          {
+            name: "Dr. Pooja Reddy",
+            specialization: "Psychologist",
+            availability: true,
+            nextAvailableTime: "5:30 PM",
+          },
+        ],
+      },
+      {
+        name: "Centre 3",
+        doctors: [
+          {
+            name: "Dr. Sanjay Nair",
+            specialization: "Adult Psychiatrist",
+            availability: true,
+            nextAvailableTime: "10:00 AM",
+          },
+          {
+            name: "Dr. Kavitha Menon",
+            specialization: "Couple Psychologist",
+            availability: false,
+          },
+          {
+            name: "Dr. Pradeep Rao",
+            specialization: "Child Psychiatrist",
+            availability: true,
+            nextAvailableTime: "12:30 PM",
+          },
+          {
+            name: "Dr. Meera Gupta",
+            specialization: "Psychologist",
+            availability: false,
+          },
+          {
+            name: "Dr. Deepak Pillai",
+            specialization: "Adult Psychiatrist",
+            availability: true,
+            nextAvailableTime: "6:00 PM",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    name: "Mumbai",
+    centres: [
+      {
+        name: "Centre 1",
+        doctors: [
+          {
+            name: "Dr. Ananya Kapoor",
+            specialization: "Psychologist",
+            availability: true,
+            nextAvailableTime: "9:45 AM",
+          },
+          {
+            name: "Dr. Kunal Deshmukh",
+            specialization: "Child Psychiatrist",
+            availability: false,
+          },
+          {
+            name: "Dr. Ritu Singh",
+            specialization: "Couple Psychologist",
+            availability: true,
+            nextAvailableTime: "2:15 PM",
+          },
+          {
+            name: "Dr. Sameer Joshi",
+            specialization: "Adult Psychiatrist",
+            availability: true,
+            nextAvailableTime: "4:30 PM",
+          },
+          {
+            name: "Dr. Aparna Mehta",
+            specialization: "Psychologist",
+            availability: false,
+          },
+        ],
+      },
+      {
+        name: "Centre 2",
+        doctors: [
+          {
+            name: "Dr. Neeraj Sharma",
+            specialization: "Adult Psychiatrist",
+            availability: true,
+            nextAvailableTime: "11:30 AM",
+          },
+          {
+            name: "Dr. Kavita Iyer",
+            specialization: "Child Psychiatrist",
+            availability: false,
+          },
+          {
+            name: "Dr. Rohan Patel",
+            specialization: "Psychologist",
+            availability: true,
+            nextAvailableTime: "1:45 PM",
+          },
+          {
+            name: "Dr. Snehal Shah",
+            specialization: "Couple Psychologist",
+            availability: false,
+          },
+          {
+            name: "Dr. Ajay Kulkarni",
+            specialization: "Adult Psychiatrist",
+            availability: true,
+            nextAvailableTime: "3:00 PM",
+          },
+        ],
+      },
+      {
+        name: "Centre 3",
+        doctors: [
+          {
+            name: "Dr. Devika Nair",
+            specialization: "Psychologist",
+            availability: true,
+            nextAvailableTime: "10:15 AM",
+          },
+          {
+            name: "Dr. Ramesh Bhat",
+            specialization: "Adult Psychiatrist",
+            availability: false,
+          },
+          {
+            name: "Dr. Smita Desai",
+            specialization: "Child Psychiatrist",
+            availability: true,
+            nextAvailableTime: "12:00 PM",
+          },
+          {
+            name: "Dr. Vijay Rao",
+            specialization: "Couple Psychologist",
+            availability: true,
+            nextAvailableTime: "5:15 PM",
+          },
+          {
+            name: "Dr. Pallavi Joshi",
+            specialization: "Psychologist",
+            availability: false,
+          },
+        ],
+      },
+    ],
+  },
+];

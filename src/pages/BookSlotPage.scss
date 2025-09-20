@@ -1,0 +1,194 @@
+// src/pages/BookSlotPage.scss
+@import "../styles/responsive.scss";
+
+.book-slot-page {
+  padding: 20px;
+  color: #e6eef6;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+
+  .page-header {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    h2 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+    }
+    .sub {
+      margin: 0;
+      color: #9fb0c8;
+      font-size: 13px;
+    }
+  }
+
+  .locations-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+
+    @include sm {
+      grid-template-columns: 1fr;
+    }
+
+    .location-card {
+      background: #1f2933; // slightly lighter than background
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+
+      .loc-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: transparent;
+        border: none;
+        padding: 6px;
+        color: inherit;
+        cursor: pointer;
+        width: 100%;
+        text-align: left;
+
+        .loc-name {
+          font-weight: 700;
+          font-size: 16px;
+        }
+        .loc-sub {
+          font-size: 12px;
+          color: #9fb0c8;
+        }
+        .chev {
+          font-size: 18px;
+          color: #9fb0c8;
+        }
+      }
+
+      .centres-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 6px;
+
+        .centre-card {
+          background: #161b20;
+          border-radius: 8px;
+          border: 1px solid rgba(255, 255, 255, 0.04);
+          overflow: hidden;
+
+          .centre-head {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border: none;
+            color: inherit;
+            background: transparent;
+            cursor: pointer;
+
+            .centre-name {
+              font-weight: 600;
+            }
+            .centre-sub {
+              font-size: 12px;
+              color: #9fb0c8;
+            }
+            .chev {
+              color: #9fb0c8;
+            }
+          }
+
+          .doctors-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 8px 10px 12px 10px;
+
+            .doctor-row {
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              gap: 12px;
+              padding: 8px;
+              border-radius: 8px;
+              background: rgba(255, 255, 255, 0.01);
+              border: 1px solid rgba(255, 255, 255, 0.02);
+
+              .doctor-info {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+
+                .doctor-name {
+                  font-weight: 600;
+                  font-size: 14px;
+                }
+
+                .doctor-meta {
+                  display: flex;
+                  gap: 10px;
+                  align-items: center;
+                  font-size: 12px;
+                  color: #9fb0c8;
+
+                  .special {
+                    text-transform: none;
+                  }
+                  .avail {
+                    padding: 2px 8px;
+                    border-radius: 12px;
+                    font-weight: 600;
+                    font-size: 11px;
+                    &.on {
+                      background: rgba(34, 197, 94, 0.12);
+                      color: #22c55e;
+                    }
+                    &.off {
+                      background: rgba(239, 68, 68, 0.06);
+                      color: #fb7185;
+                    }
+                  }
+                }
+              }
+
+              .doctor-actions {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+
+                .next-time {
+                  font-size: 13px;
+                  color: #cfe8ff;
+                }
+
+                .btn {
+                  border: none;
+                  padding: 8px 12px;
+                  border-radius: 8px;
+                  cursor: pointer;
+                  font-weight: 700;
+
+                  &.primary {
+                    background: #0ea5a3; // teal-ish
+                    color: #04111a;
+                  }
+                }
+
+                .not-available {
+                  color: #9fb0c8;
+                  font-size: 13px;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
