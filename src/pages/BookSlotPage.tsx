@@ -8,6 +8,8 @@ type Slot = {
   id: string;
   time: string;
   patientName?: string;
+  status?: "booked" | "cancelled" | "postponed";
+  date: string; // e.g. "2025-09-22"
 };
 
 type Doctor = {
@@ -28,7 +30,7 @@ function makeId(prefix = "") {
   );
 }
 
-// Dummy doctor lists
+// --- Dummy Data Setup ---
 const KOCHI_DOCTORS = [
   "Dr. Meera Nair",
   "Dr. Arun Menon",
@@ -57,7 +59,8 @@ const MUMBAI_DOCTORS = [
   "Dr. Pooja Bhatia",
 ];
 
-// Dummy slots per doctor
+const TODAY = format(new Date(), "yyyy-MM-dd");
+
 const DUMMY_SLOTS: Record<string, string[][]> = {
   kochi: [
     ["09:00 - 09:30", "11:00 - 11:30"],
@@ -105,6 +108,8 @@ export default function BookSlotPage() {
         slots: DUMMY_SLOTS[slotKey][idx].map((time) => ({
           id: makeId("slot_"),
           time,
+          date: TODAY,
+          status: "booked",
         })),
       })),
     });
@@ -116,18 +121,29 @@ export default function BookSlotPage() {
     ];
   });
 
-  // modal state
+  // Modal states
   const [isModalOpen, setModalOpen] = useState(false);
   const [modalCentreId, setModalCentreId] = useState<string | null>(null);
   const [modalDoctorId, setModalDoctorId] = useState<string | null>(null);
   const [modalTime, setModalTime] = useState<string>("");
   const [modalPatientName, setModalPatientName] = useState<string>("");
 
+  // Slot action states
+  const [activeSlot, setActiveSlot] = useState<Slot | null>(null);
+  const [isPostponeModal, setIsPostponeModal] = useState(false);
+  const [postponeDate, setPostponeDate] = useState<Date | null>(new Date());
+  const [postponeTime, setPostponeTime] = useState("");
+
+  const selectedDateKey = useMemo(
+    () => (selectedDate ? format(selectedDate, "yyyy-MM-dd") : ""),
+    [selectedDate]
+  );
   const selectedDateLabel = useMemo(
     () => (selectedDate ? format(selectedDate, "EEE, MMM d yyyy") : "No date"),
     [selectedDate]
   );
 
+  // --- Booking Modal ---
   function openBookingModal(centreId: string) {
     setModalCentreId(centreId);
     const centre = centres.find((c) => c.id === centreId);
@@ -136,11 +152,9 @@ export default function BookSlotPage() {
     setModalPatientName("");
     setModalOpen(true);
   }
-
   function closeModal() {
     setModalOpen(false);
   }
-
   function handleConfirmBooking(e?: React.FormEvent) {
     e?.preventDefault();
     if (!modalCentreId || !modalDoctorId || !modalTime) {
@@ -148,36 +162,98 @@ export default function BookSlotPage() {
       return;
     }
 
-    alert(
-      `Booking placeholder:\nCentre: ${
-        centres.find((c) => c.id === modalCentreId)?.name
-      }\nDoctor: ${
-        centres.flatMap((c) => c.doctors).find((d) => d.id === modalDoctorId)
-          ?.name
-      }\nTime: ${modalTime}\nDate: ${selectedDateLabel}\nPatient: ${
-        modalPatientName || "—"
-      }`
-    );
+    alert(`Booking placeholder confirmed`);
 
     setCentres((prev) =>
-      prev.map((c) => {
-        if (c.id !== modalCentreId) return c;
-        return {
-          ...c,
-          doctors: c.doctors.map((d) => {
-            if (d.id !== modalDoctorId) return d;
-            const newSlot: Slot = {
-              id: makeId("slot_"),
-              time: modalTime,
-              patientName: modalPatientName || undefined,
-            };
-            return { ...d, slots: [...d.slots, newSlot] };
-          }),
-        };
-      })
+      prev.map((c) =>
+        c.id === modalCentreId
+          ? {
+              ...c,
+              doctors: c.doctors.map((d) =>
+                d.id === modalDoctorId
+                  ? {
+                      ...d,
+                      slots: [
+                        ...d.slots,
+                        {
+                          id: makeId("slot_"),
+                          time: modalTime,
+                          patientName: modalPatientName || undefined,
+                          date: selectedDateKey,
+                          status: "booked",
+                        },
+                      ],
+                    }
+                  : d
+              ),
+            }
+          : c
+      )
     );
 
     setModalOpen(false);
+  }
+
+  // --- Cancel / Postpone ---
+  function handleCancel(slot: Slot) {
+    alert("Appointment cancelled");
+    setCentres((prev) =>
+      prev.map((c) => ({
+        ...c,
+        doctors: c.doctors.map((d) => ({
+          ...d,
+          slots: d.slots.map((s) =>
+            s.id === slot.id ? { ...s, status: "cancelled" } : s
+          ),
+        })),
+      }))
+    );
+    setActiveSlot(null);
+  }
+
+  function openPostpone(slot: Slot) {
+    setActiveSlot(slot);
+    setIsPostponeModal(true);
+    setPostponeDate(new Date());
+    setPostponeTime("");
+  }
+
+  function confirmPostpone(e?: React.FormEvent) {
+    e?.preventDefault();
+    if (!activeSlot || !postponeDate || !postponeTime) return;
+
+    const newDateKey = format(postponeDate, "yyyy-MM-dd");
+    alert(
+      `Slot postponed to ${format(
+        postponeDate,
+        "dd MMM yyyy"
+      )} at ${postponeTime}`
+    );
+
+    setCentres((prev) =>
+      prev.map((c) => ({
+        ...c,
+        doctors: c.doctors.map((d) => {
+          if (!d.slots.find((s) => s.id === activeSlot.id)) return d;
+          return {
+            ...d,
+            slots: d.slots.map((s) =>
+              s.id === activeSlot.id
+                ? {
+                    ...s,
+                    time: postponeTime,
+                    date: newDateKey,
+                    status: "postponed",
+                  }
+                : s
+            ),
+          };
+        }),
+      }))
+    );
+
+    setIsPostponeModal(false);
+    setActiveSlot(null);
   }
 
   function renderCentre(c: Centre) {
@@ -200,17 +276,60 @@ export default function BookSlotPage() {
                 <div className="doctor-name">{d.name}</div>
               </div>
               <div className="slots">
-                {d.slots.length === 0 ? (
+                {d.slots.filter((s) => s.date === selectedDateKey).length ===
+                0 ? (
                   <div className="no-slots">No bookings for this doctor</div>
                 ) : (
-                  d.slots.map((s) => (
-                    <div className="slot-pill" key={s.id}>
-                      <span className="slot-time">{s.time}</span>
-                      {s.patientName && (
-                        <span className="slot-patient">— {s.patientName}</span>
-                      )}
-                    </div>
-                  ))
+                  <>
+                    <div className="slots-label">Booked Slots:</div>
+                    {d.slots
+                      .filter((s) => s.date === selectedDateKey)
+                      .map((s) => (
+                        <div
+                          className={`slot-pill ${s.status}`}
+                          key={s.id}
+                          onClick={() =>
+                            setActiveSlot(activeSlot?.id === s.id ? null : s)
+                          }
+                        >
+                          <span className="slot-time">{s.time}</span>
+                          {s.patientName && (
+                            <span className="slot-patient">
+                              — {s.patientName}
+                            </span>
+                          )}
+                          {s.status === "cancelled" && (
+                            <span className="slot-tag">Cancelled</span>
+                          )}
+                          {s.status === "postponed" && (
+                            <span className="slot-tag">Postponed</span>
+                          )}
+
+                          {activeSlot?.id === s.id && (
+                            <div className="slot-actions">
+                              <button
+                                className="btn-action cancel"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleCancel(s);
+                                }}
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                className="btn-action postpone"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openPostpone(s);
+                                }}
+                              >
+                                Postpone
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                  </>
                 )}
               </div>
             </div>
@@ -244,72 +363,104 @@ export default function BookSlotPage() {
         {centres.map((c) => renderCentre(c))}
       </div>
 
+      {/* Booking Modal */}
       {isModalOpen && modalCentreId && (
         <div className="modal-backdrop" onClick={closeModal}>
           <div className="modal" onClick={(ev) => ev.stopPropagation()}>
             <h3>Book Slot</h3>
-            <div className="modal-sub">
-              <div className="meta-row">
-                <div>
-                  <strong>Centre:</strong>{" "}
-                  {centres.find((x) => x.id === modalCentreId)?.name}
-                </div>
-                <div>
-                  <strong>Date:</strong> {selectedDateLabel}
-                </div>
+            <form onSubmit={handleConfirmBooking}>
+              <div className="form-row">
+                <label>Doctor</label>
+                <select
+                  value={modalDoctorId ?? ""}
+                  onChange={(e) => setModalDoctorId(e.target.value)}
+                >
+                  {centres
+                    .find((c) => c.id === modalCentreId)!
+                    .doctors.map((d) => (
+                      <option key={d.id} value={d.id}>
+                        {d.name}
+                      </option>
+                    ))}
+                </select>
               </div>
 
-              <form onSubmit={handleConfirmBooking}>
-                <div className="form-row">
-                  <label>Doctor</label>
-                  <select
-                    value={modalDoctorId ?? ""}
-                    onChange={(e) => setModalDoctorId(e.target.value)}
-                  >
-                    {centres
-                      .find((c) => c.id === modalCentreId)!
-                      .doctors.map((d) => (
-                        <option key={d.id} value={d.id}>
-                          {d.name}
-                        </option>
-                      ))}
-                  </select>
-                </div>
+              <div className="form-row">
+                <label>Time</label>
+                <input
+                  type="text"
+                  value={modalTime}
+                  onChange={(e) => setModalTime(e.target.value)}
+                />
+              </div>
 
-                <div className="form-row">
-                  <label>Time (e.g. 14:00 - 14:30)</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. 14:00 - 14:30"
-                    value={modalTime}
-                    onChange={(e) => setModalTime(e.target.value)}
-                  />
-                </div>
+              <div className="form-row">
+                <label>Patient name</label>
+                <input
+                  type="text"
+                  value={modalPatientName}
+                  onChange={(e) => setModalPatientName(e.target.value)}
+                />
+              </div>
 
-                <div className="form-row">
-                  <label>Patient name (optional)</label>
-                  <input
-                    type="text"
-                    placeholder="Patient name"
-                    value={modalPatientName}
-                    onChange={(e) => setModalPatientName(e.target.value)}
-                  />
-                </div>
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={closeModal}
+                >
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  Confirm
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
-                <div className="modal-actions">
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={closeModal}
-                  >
-                    Cancel
-                  </button>
-                  <button type="submit" className="btn btn-primary">
-                    Confirm Booking
-                  </button>
-                </div>
-              </form>
-            </div>
+      {/* Postpone Modal */}
+      {isPostponeModal && activeSlot && (
+        <div
+          className="modal-backdrop"
+          onClick={() => setIsPostponeModal(false)}
+        >
+          <div className="modal" onClick={(ev) => ev.stopPropagation()}>
+            <h3>Postpone Slot</h3>
+            <form onSubmit={confirmPostpone}>
+              <div className="form-row">
+                <label>New Date</label>
+                <DatePicker
+                  selected={postponeDate}
+                  onChange={(d) => setPostponeDate(d)}
+                  minDate={new Date()}
+                  dateFormat="dd MMM yyyy"
+                  className="date-input"
+                />
+              </div>
+              <div className="form-row">
+                <label>New Time</label>
+                <input
+                  type="text"
+                  value={postponeTime}
+                  onChange={(e) => setPostponeTime(e.target.value)}
+                  placeholder="e.g. 14:00 - 14:30"
+                />
+              </div>
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setIsPostponeModal(false)}
+                >
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  Confirm
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
