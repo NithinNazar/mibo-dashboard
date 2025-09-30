@@ -1,7 +1,7 @@
 // src/components/DoctorLayout.tsx
 import React from "react";
 import BookSlotPage from "../pages/BookSlotPage";
-import "./DoctorLayout.css";
+import "./DoctorLayout.scss";
 
 const DoctorLayout: React.FC = () => {
   const user = JSON.parse(localStorage.getItem("user") || "null") as {
