@@ -1,4 +1,3 @@
-// src/pages/BookSlotPage.tsx
 import React, { useState, useMemo } from "react";
 import DatePicker from "react-datepicker";
 import { format } from "date-fns";
@@ -28,7 +27,7 @@ type Centre = {
 };
 
 type Props = {
-  doctorName?: string; // only for doctor
+  doctorName?: string; // only for doctor layout
 };
 
 function makeId(prefix = "") {
@@ -39,14 +38,20 @@ function makeId(prefix = "") {
 
 const TODAY = format(new Date(), "yyyy-MM-dd");
 
-// --- Dummy doctors and slots ---
-const DOCTORS = [
-  "Dr. Meera Nair",
-  "Dr. Arun Menon",
-  "Dr. Kavya Suresh",
-  "Dr. Raghav Pillai",
+// --- Doctor names per centre ---
+const KOCHI_DOCTORS = ["Dr. Meera Nair", "Dr. Arun Menon", "Dr. Kavya Suresh"];
+const MUMBAI_DOCTORS = [
+  "Dr. Rohit Sharma",
+  "Dr. Ananya Singh",
+  "Dr. Priya Desai",
+];
+const BANGALORE_DOCTORS = [
+  "Dr. Rajesh Kumar",
+  "Dr. Sneha Reddy",
+  "Dr. Vikram Patil",
 ];
 
+// --- Dummy slots pattern ---
 const DUMMY_SLOTS: string[][] = [
   ["09:00 - 09:30", "11:00 - 11:30"],
   ["10:00 - 10:30", "12:00 - 12:30"],
@@ -54,33 +59,42 @@ const DUMMY_SLOTS: string[][] = [
   ["14:00 - 14:30", "15:15 - 15:45"],
 ];
 
-function generateRandomSlots(seed: string, sessionLength: number): string[] {
+function generateRandomSlotsSimple(
+  seed: string,
+  sessionLength: number
+): string[] {
   const rng = seedrandom(seed);
   const slots: string[] = [];
   let hour = 8;
   while (hour < 19) {
     const minute = rng() < 0.5 ? 0 : 30;
-    const endH = hour + Math.floor((minute + sessionLength) / 60);
-    const endM = (minute + sessionLength) % 60;
+    const total = minute + sessionLength;
+    const endH = hour + Math.floor(total / 60);
+    const endM = total % 60;
     if (endH >= 19) break;
-    const timeStr = `${hour.toString().padStart(2, "0")}:${minute
-      .toString()
-      .padStart(2, "0")} - ${endH.toString().padStart(2, "0")}:${endM
+    const start = `${hour.toString().padStart(2, "0")}:${minute
       .toString()
       .padStart(2, "0")}`;
-    slots.push(timeStr);
+    const end = `${endH.toString().padStart(2, "0")}:${endM
+      .toString()
+      .padStart(2, "0")}`;
+    slots.push(`${start} - ${end}`);
     hour = endH + (rng() < 0.5 ? 0 : 1);
-    if (slots.length >= 5) break;
+    if (slots.length >= 6) break;
   }
+  if (slots.length === 0) return ["09:00 - 09:30", "11:00 - 11:30"];
   return slots;
 }
 
 export default function BookSlotPage({ doctorName }: Props) {
-  const user = JSON.parse(localStorage.getItem("user") || "null") as {
-    name?: string;
-    role?: string;
-  } | null;
-  const isDoctor = !!doctorName;
+  const user =
+    (JSON.parse(localStorage.getItem("user") || "null") as {
+      name?: string;
+      role?: string;
+    } | null) ?? null;
+
+  const isDoctorView = !!doctorName || user?.role === "Doctor";
+  const loggedInDoctorName = doctorName ?? user?.name;
   const isAdmin = user?.role === "Admin";
 
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
@@ -93,15 +107,44 @@ export default function BookSlotPage({ doctorName }: Props) {
     [selectedDate]
   );
 
-  // --- Initialize centres with doctors and dummy slots ---
   const [centres, setCentres] = useState<Centre[]>(() => [
     {
       id: makeId("centre_"),
       name: "Kochi",
-      doctors: DOCTORS.map((d, i) => ({
+      doctors: KOCHI_DOCTORS.map((name, i) => ({
         id: makeId("doc_"),
-        name: d,
-        slots: DUMMY_SLOTS[i].map((t) => ({
+        name,
+        slots: DUMMY_SLOTS[i % DUMMY_SLOTS.length].map((t) => ({
+          id: makeId("slot_"),
+          time: t,
+          date: TODAY,
+          status: "booked",
+          sessionLength: 30,
+        })),
+      })),
+    },
+    {
+      id: makeId("centre_"),
+      name: "Mumbai",
+      doctors: MUMBAI_DOCTORS.map((name, i) => ({
+        id: makeId("doc_"),
+        name,
+        slots: DUMMY_SLOTS[i % DUMMY_SLOTS.length].map((t) => ({
+          id: makeId("slot_"),
+          time: t,
+          date: TODAY,
+          status: "booked",
+          sessionLength: 30,
+        })),
+      })),
+    },
+    {
+      id: makeId("centre_"),
+      name: "Bangalore",
+      doctors: BANGALORE_DOCTORS.map((name, i) => ({
+        id: makeId("doc_"),
+        name,
+        slots: DUMMY_SLOTS[i % DUMMY_SLOTS.length].map((t) => ({
           id: makeId("slot_"),
           time: t,
           date: TODAY,
@@ -112,7 +155,7 @@ export default function BookSlotPage({ doctorName }: Props) {
     },
   ]);
 
-  // --- Admin booking modal state ---
+  // --- Booking modal state ---
   const [isBookingOpen, setBookingOpen] = useState(false);
   const [bookingCentreId, setBookingCentreId] = useState<string | null>(null);
   const [bookingDoctorId, setBookingDoctorId] = useState<string | null>(null);
@@ -120,36 +163,69 @@ export default function BookSlotPage({ doctorName }: Props) {
   const [bookingPatientName, setBookingPatientName] = useState("");
   const [bookingSessionLength, setBookingSessionLength] = useState(30);
 
-  // --- Admin slot actions ---
+  // --- Slot action state ---
   const [activeSlot, setActiveSlot] = useState<Slot | null>(null);
   const [isPostponeOpen, setPostponeOpen] = useState(false);
   const [postponeDate, setPostponeDate] = useState<Date | null>(new Date());
   const [postponeTime, setPostponeTime] = useState("");
   const [postponeSessionLength, setPostponeSessionLength] = useState(30);
 
-  // --- Filter centres for doctor ---
+  // --- Filter centres for doctor view ---
   const visibleCentres = useMemo(() => {
-    if (!isDoctor) return centres;
+    if (!isDoctorView) return centres;
     return centres
       .map((c) => ({
         ...c,
-        doctors: c.doctors.filter((d) => d.name === doctorName),
+        doctors: c.doctors.filter((d) => d.name === loggedInDoctorName),
       }))
       .filter((c) => c.doctors.length > 0);
-  }, [centres, doctorName]);
+  }, [centres, isDoctorView, loggedInDoctorName]);
 
-  // --- Get slots for doctor & date ---
-  const getSlotsForDoctor = (d: Doctor, dateKey: string): Slot[] => {
+  // --- Persist slot if not in state ---
+  const persistSlotIfNeeded = (
+    centreId: string,
+    doctorId: string,
+    slot: Slot
+  ) => {
+    setCentres((prev) =>
+      prev.map((c) =>
+        c.id === centreId
+          ? {
+              ...c,
+              doctors: c.doctors.map((d) =>
+                d.id === doctorId
+                  ? d.slots.some((s) => s.id === slot.id)
+                    ? d
+                    : { ...d, slots: [...d.slots, slot] }
+                  : d
+              ),
+            }
+          : c
+      )
+    );
+  };
+
+  // --- Get slots ---
+  const getSlotsForDoctor = (
+    centreId: string,
+    d: Doctor,
+    dateKey: string
+  ): Slot[] => {
     const existing = d.slots.filter((s) => s.date === dateKey);
     if (existing.length) return existing;
-    const dummyTimes = generateRandomSlots(`${d.id}_${dateKey}`, 30);
-    return dummyTimes.map((t) => ({
+
+    const dummyTimes = generateRandomSlotsSimple(`${d.id}_${dateKey}`, 30);
+    const generatedSlots: Slot[] = dummyTimes.map((t) => ({
       id: makeId("slot_"),
       time: t,
       date: dateKey,
       status: "booked",
       sessionLength: 30,
     }));
+
+    // Persist generated slots
+    generatedSlots.forEach((s) => persistSlotIfNeeded(centreId, d.id, s));
+    return generatedSlots;
   };
 
   // --- Admin handlers ---
@@ -177,21 +253,7 @@ export default function BookSlotPage({ doctorName }: Props) {
       sessionLength: bookingSessionLength,
     };
 
-    setCentres((prev) =>
-      prev.map((c) =>
-        c.id === bookingCentreId
-          ? {
-              ...c,
-              doctors: c.doctors.map((d) =>
-                d.id === bookingDoctorId
-                  ? { ...d, slots: [...d.slots, newSlot] }
-                  : d
-              ),
-            }
-          : c
-      )
-    );
-
+    persistSlotIfNeeded(bookingCentreId, bookingDoctorId, newSlot);
     setBookingOpen(false);
   };
 
@@ -222,7 +284,6 @@ export default function BookSlotPage({ doctorName }: Props) {
   const confirmPostpone = (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!activeSlot || !postponeDate || !postponeTime) return;
-
     const newDateKey = format(postponeDate, "yyyy-MM-dd");
     setCentres((prev) =>
       prev.map((c) => ({
@@ -243,7 +304,6 @@ export default function BookSlotPage({ doctorName }: Props) {
         })),
       }))
     );
-
     setPostponeOpen(false);
     setActiveSlot(null);
   };
@@ -268,7 +328,7 @@ export default function BookSlotPage({ doctorName }: Props) {
       </div>
       <div className="doctors-list">
         {c.doctors.map((d) => {
-          const slots = getSlotsForDoctor(d, selectedDateKey);
+          const slots = getSlotsForDoctor(c.id, d, selectedDateKey);
           return (
             <div className="doctor-row" key={d.id}>
               <div className="doctor-meta">{d.name}</div>
@@ -281,8 +341,12 @@ export default function BookSlotPage({ doctorName }: Props) {
                       className={`slot-pill ${s.status}`}
                       key={s.id}
                       onClick={() => {
-                        if (isAdmin)
-                          setActiveSlot(activeSlot?.id === s.id ? null : s);
+                        const canActivate =
+                          isAdmin ||
+                          (isDoctorView && d.name === loggedInDoctorName);
+                        if (!canActivate) return;
+                        persistSlotIfNeeded(c.id, d.id, s);
+                        setActiveSlot((prev) => (prev?.id === s.id ? null : s));
                       }}
                     >
                       <span className="slot-time">{s.time}</span>
@@ -295,22 +359,31 @@ export default function BookSlotPage({ doctorName }: Props) {
                       {s.status === "postponed" && (
                         <span className="slot-tag">Postponed</span>
                       )}
-                      {isAdmin && activeSlot?.id === s.id && (
-                        <div className="slot-actions">
-                          <button
-                            className="btn-action cancel"
-                            onClick={() => handleCancel(s)}
-                          >
-                            Cancel
-                          </button>
-                          <button
-                            className="btn-action postpone"
-                            onClick={() => openPostpone(s)}
-                          >
-                            Postpone
-                          </button>
-                        </div>
-                      )}
+
+                      {(isAdmin ||
+                        (isDoctorView && d.name === loggedInDoctorName)) &&
+                        activeSlot?.id === s.id && (
+                          <div className="slot-actions">
+                            <button
+                              className="btn-action cancel"
+                              onClick={(ev) => {
+                                ev.stopPropagation();
+                                handleCancel(s);
+                              }}
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              className="btn-action postpone"
+                              onClick={(ev) => {
+                                ev.stopPropagation();
+                                openPostpone(s);
+                              }}
+                            >
+                              Postpone
+                            </button>
+                          </div>
+                        )}
                     </div>
                   ))
                 )}
@@ -359,7 +432,7 @@ export default function BookSlotPage({ doctorName }: Props) {
         {visibleCentres.map(renderCentre)}
       </div>
 
-      {/* Admin booking modal */}
+      {/* Booking modal */}
       {isBookingOpen && bookingCentreId && (
         <div className="modal-backdrop" onClick={() => setBookingOpen(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
@@ -427,7 +500,7 @@ export default function BookSlotPage({ doctorName }: Props) {
         </div>
       )}
 
-      {/* Admin postpone modal */}
+      {/* Postpone modal */}
       {isPostponeOpen && activeSlot && (
         <div className="modal-backdrop" onClick={() => setPostponeOpen(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
@@ -484,6 +557,1065 @@ export default function BookSlotPage({ doctorName }: Props) {
     </div>
   );
 }
+
+//NEW______________________________________
+// import React, { useState, useMemo } from "react";
+// import DatePicker from "react-datepicker";
+// import { format } from "date-fns";
+// import seedrandom from "seedrandom";
+// import "react-datepicker/dist/react-datepicker.css";
+// import "./BookSlotPage.scss";
+
+// type Slot = {
+//   id: string;
+//   time: string;
+//   patientName?: string;
+//   status: "booked" | "cancelled" | "postponed";
+//   date: string;
+//   sessionLength: number;
+// };
+
+// type Doctor = {
+//   id: string;
+//   name: string;
+//   slots: Slot[];
+// };
+
+// type Centre = {
+//   id: string;
+//   name: string;
+//   doctors: Doctor[];
+// };
+
+// type Props = {
+//   doctorName?: string; // only for doctor layout
+// };
+
+// function makeId(prefix = "") {
+//   return (
+//     prefix + Date.now().toString(36) + Math.random().toString(36).slice(2, 7)
+//   );
+// }
+
+// const TODAY = format(new Date(), "yyyy-MM-dd");
+
+// // --- Dummy doctors and slots (seed data) ---
+// const DOCTORS = [
+//   "Dr. Meera Nair",
+//   "Dr. Arun Menon",
+//   "Dr. Kavya Suresh",
+//   "Dr. Raghav Pillai",
+// ];
+// const DUMMY_SLOTS: string[][] = [
+//   ["09:00 - 09:30", "11:00 - 11:30"],
+//   ["10:00 - 10:30", "12:00 - 12:30"],
+//   ["09:15 - 09:45", "13:00 - 13:30"],
+//   ["14:00 - 14:30", "15:15 - 15:45"],
+// ];
+
+// function generateRandomSlotsSimple(
+//   seed: string,
+//   sessionLength: number
+// ): string[] {
+//   const rng = seedrandom(seed);
+//   const slots: string[] = [];
+//   let hour = 8;
+//   while (hour < 19) {
+//     const minute = rng() < 0.5 ? 0 : 30;
+//     const total = minute + sessionLength;
+//     const endH = hour + Math.floor(total / 60);
+//     const endM = total % 60;
+//     if (endH >= 19) break;
+//     const start = `${hour.toString().padStart(2, "0")}:${minute
+//       .toString()
+//       .padStart(2, "0")}`;
+//     const end = `${endH.toString().padStart(2, "0")}:${endM
+//       .toString()
+//       .padStart(2, "0")}`;
+//     slots.push(`${start} - ${end}`);
+//     hour = endH + (rng() < 0.5 ? 0 : 1);
+//     if (slots.length >= 6) break;
+//   }
+//   // Guarantee some slots
+//   if (slots.length === 0) {
+//     return ["09:00 - 09:30", "11:00 - 11:30"];
+//   }
+//   return slots;
+// }
+
+// export default function BookSlotPage({ doctorName }: Props) {
+//   const user =
+//     (JSON.parse(localStorage.getItem("user") || "null") as {
+//       name?: string;
+//       role?: string;
+//     } | null) ?? null;
+
+//   const isDoctorView = !!doctorName || user?.role === "Doctor";
+//   const loggedInDoctorName = doctorName ?? user?.name;
+//   const isAdmin = user?.role === "Admin";
+
+//   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
+//   const selectedDateKey = useMemo(
+//     () => (selectedDate ? format(selectedDate, "yyyy-MM-dd") : TODAY),
+//     [selectedDate]
+//   );
+//   const selectedDateLabel = useMemo(
+//     () => (selectedDate ? format(selectedDate, "EEE, MMM d yyyy") : "No date"),
+//     [selectedDate]
+//   );
+
+//   // --- Initialise centres (added Kochi, Mumbai, Bangalore) ---
+//   const [centres, setCentres] = useState<Centre[]>(() => [
+//     {
+//       id: makeId("centre_"),
+//       name: "Kochi",
+//       doctors: DOCTORS.map((d, i) => ({
+//         id: makeId("doc_"),
+//         name: d,
+//         slots: DUMMY_SLOTS[i].map((t) => ({
+//           id: makeId("slot_"),
+//           time: t,
+//           date: TODAY,
+//           status: "booked",
+//           sessionLength: 30,
+//         })),
+//       })),
+//     },
+//     {
+//       id: makeId("centre_"),
+//       name: "Mumbai",
+//       doctors: DOCTORS.map((d, i) => ({
+//         id: makeId("doc_"),
+//         name: d,
+//         slots: DUMMY_SLOTS[(i + 1) % DUMMY_SLOTS.length].map((t) => ({
+//           id: makeId("slot_"),
+//           time: t,
+//           date: TODAY,
+//           status: "booked",
+//           sessionLength: 30,
+//         })),
+//       })),
+//     },
+//     {
+//       id: makeId("centre_"),
+//       name: "Bangalore",
+//       doctors: DOCTORS.map((d, i) => ({
+//         id: makeId("doc_"),
+//         name: d,
+//         slots: DUMMY_SLOTS[(i + 2) % DUMMY_SLOTS.length].map((t) => ({
+//           id: makeId("slot_"),
+//           time: t,
+//           date: TODAY,
+//           status: "booked",
+//           sessionLength: 30,
+//         })),
+//       })),
+//     },
+//   ]);
+
+//   // --- Booking modal state (admin) ---
+//   const [isBookingOpen, setBookingOpen] = useState(false);
+//   const [bookingCentreId, setBookingCentreId] = useState<string | null>(null);
+//   const [bookingDoctorId, setBookingDoctorId] = useState<string | null>(null);
+//   const [bookingTime, setBookingTime] = useState("");
+//   const [bookingPatientName, setBookingPatientName] = useState("");
+//   const [bookingSessionLength, setBookingSessionLength] = useState(30);
+
+//   // --- Slot action state ---
+//   const [activeSlot, setActiveSlot] = useState<Slot | null>(null);
+//   const [isPostponeOpen, setPostponeOpen] = useState(false);
+//   const [postponeDate, setPostponeDate] = useState<Date | null>(new Date());
+//   const [postponeTime, setPostponeTime] = useState("");
+//   const [postponeSessionLength, setPostponeSessionLength] = useState(30);
+
+//   // --- Filter centres for doctor view: only show logged-in doctor's slots ---
+//   const visibleCentres = useMemo(() => {
+//     if (!isDoctorView) return centres;
+//     const nameToMatch = loggedInDoctorName;
+//     return centres
+//       .map((c) => ({
+//         ...c,
+//         doctors: c.doctors.filter((d) => d.name === nameToMatch),
+//       }))
+//       .filter((c) => c.doctors.length > 0);
+//   }, [centres, isDoctorView, loggedInDoctorName]);
+
+//   // --- Return slots: either stored slots for that date or generated random slots ---
+//   const getSlotsForDoctor = (d: Doctor, dateKey: string): Slot[] => {
+//     const existing = d.slots.filter((s) => s.date === dateKey);
+//     if (existing.length) return existing;
+//     const dummyTimes = generateRandomSlotsSimple(`${d.id}_${dateKey}`, 30);
+//     return dummyTimes.map((t) => ({
+//       id: makeId("slot_"),
+//       time: t,
+//       date: dateKey,
+//       status: "booked",
+//       sessionLength: 30,
+//     }));
+//   };
+
+//   // Persist a generated slot into state's doctors so actions (cancel/postpone) can modify it
+//   const persistSlotIfNeeded = (
+//     centreId: string,
+//     doctorId: string,
+//     slot: Slot
+//   ) => {
+//     const centre = centres.find((c) => c.id === centreId);
+//     if (!centre) return;
+//     const doctor = centre.doctors.find((dd) => dd.id === doctorId);
+//     if (!doctor) return;
+//     const exists = doctor.slots.some((s) => s.id === slot.id);
+//     if (exists) return;
+//     setCentres((prev) =>
+//       prev.map((c) =>
+//         c.id === centreId
+//           ? {
+//               ...c,
+//               doctors: c.doctors.map((d) =>
+//                 d.id === doctorId ? { ...d, slots: [...d.slots, slot] } : d
+//               ),
+//             }
+//           : c
+//       )
+//     );
+//   };
+
+//   // --- Admin handlers ---
+//   const openBookingModal = (centreId: string) => {
+//     setBookingCentreId(centreId);
+//     const centre = centres.find((c) => c.id === centreId);
+//     setBookingDoctorId(centre?.doctors[0]?.id ?? null);
+//     setBookingTime("");
+//     setBookingPatientName("");
+//     setBookingSessionLength(30);
+//     setBookingOpen(true);
+//   };
+
+//   const handleConfirmBooking = (e?: React.FormEvent) => {
+//     e?.preventDefault();
+//     if (!bookingCentreId || !bookingDoctorId || !bookingTime)
+//       return alert("Please select doctor and time.");
+
+//     const newSlot: Slot = {
+//       id: makeId("slot_"),
+//       time: bookingTime,
+//       patientName: bookingPatientName || undefined,
+//       date: selectedDateKey,
+//       status: "booked",
+//       sessionLength: bookingSessionLength,
+//     };
+
+//     setCentres((prev) =>
+//       prev.map((c) =>
+//         c.id === bookingCentreId
+//           ? {
+//               ...c,
+//               doctors: c.doctors.map((d) =>
+//                 d.id === bookingDoctorId
+//                   ? { ...d, slots: [...d.slots, newSlot] }
+//                   : d
+//               ),
+//             }
+//           : c
+//       )
+//     );
+
+//     setBookingOpen(false);
+//   };
+
+//   const handleCancel = (s: Slot) => {
+//     if (!window.confirm("Are you sure you want to cancel this slot?")) return;
+//     setCentres((prev) =>
+//       prev.map((c) => ({
+//         ...c,
+//         doctors: c.doctors.map((d) => ({
+//           ...d,
+//           slots: d.slots.map((slot) =>
+//             slot.id === s.id ? { ...slot, status: "cancelled" } : slot
+//           ),
+//         })),
+//       }))
+//     );
+//     setActiveSlot(null);
+//   };
+
+//   const openPostpone = (s: Slot) => {
+//     setActiveSlot(s);
+//     setPostponeOpen(true);
+//     setPostponeDate(new Date());
+//     setPostponeTime(s.time);
+//     setPostponeSessionLength(s.sessionLength || 30);
+//   };
+
+//   const confirmPostpone = (e?: React.FormEvent) => {
+//     e?.preventDefault();
+//     if (!activeSlot || !postponeDate || !postponeTime) return;
+//     const newDateKey = format(postponeDate, "yyyy-MM-dd");
+//     setCentres((prev) =>
+//       prev.map((c) => ({
+//         ...c,
+//         doctors: c.doctors.map((d) => ({
+//           ...d,
+//           slots: d.slots.map((slot) =>
+//             slot.id === activeSlot.id
+//               ? {
+//                   ...slot,
+//                   date: newDateKey,
+//                   time: postponeTime,
+//                   sessionLength: postponeSessionLength,
+//                   status: "postponed",
+//                 }
+//               : slot
+//           ),
+//         })),
+//       }))
+//     );
+//     setPostponeOpen(false);
+//     setActiveSlot(null);
+//   };
+
+//   const handleLogout = () => {
+//     localStorage.removeItem("user");
+//     window.location.href = "/login";
+//   };
+
+//   const renderCentre = (c: Centre) => (
+//     <div className="centre-card card" key={c.id}>
+//       <div className="centre-header">
+//         <h3>{c.name}</h3>
+//         {isAdmin && (
+//           <button
+//             className="btn-primary"
+//             onClick={() => openBookingModal(c.id)}
+//           >
+//             Book Slot
+//           </button>
+//         )}
+//       </div>
+//       <div className="doctors-list">
+//         {c.doctors.map((d) => {
+//           const slots = getSlotsForDoctor(d, selectedDateKey);
+//           return (
+//             <div className="doctor-row" key={d.id}>
+//               <div className="doctor-meta">{d.name}</div>
+//               <div className="slots">
+//                 {slots.length === 0 ? (
+//                   <div className="no-slots">No bookings</div>
+//                 ) : (
+//                   slots.map((s) => (
+//                     <div
+//                       className={`slot-pill ${s.status}`}
+//                       key={s.id}
+//                       onClick={() => {
+//                         const canActivate =
+//                           isAdmin ||
+//                           (isDoctorView && d.name === loggedInDoctorName);
+//                         if (!canActivate) return;
+
+//                         // If slot is generated (not yet persisted) we persist it so actions update state
+//                         const doctorHasSlot = d.slots.some(
+//                           (st) => st.id === s.id
+//                         );
+//                         if (!doctorHasSlot) persistSlotIfNeeded(c.id, d.id, s);
+
+//                         setActiveSlot((prev) => (prev?.id === s.id ? null : s));
+//                       }}
+//                     >
+//                       <span className="slot-time">{s.time}</span>
+//                       {s.patientName && (
+//                         <span className="slot-patient"> — {s.patientName}</span>
+//                       )}
+//                       {s.status === "cancelled" && (
+//                         <span className="slot-tag">Cancelled</span>
+//                       )}
+//                       {s.status === "postponed" && (
+//                         <span className="slot-tag">Postponed</span>
+//                       )}
+
+//                       {(isAdmin ||
+//                         (isDoctorView && d.name === loggedInDoctorName)) &&
+//                         activeSlot?.id === s.id && (
+//                           <div className="slot-actions">
+//                             <button
+//                               className="btn-action cancel"
+//                               onClick={(ev) => {
+//                                 ev.stopPropagation();
+//                                 handleCancel(s);
+//                               }}
+//                             >
+//                               Cancel
+//                             </button>
+//                             <button
+//                               className="btn-action postpone"
+//                               onClick={(ev) => {
+//                                 ev.stopPropagation();
+//                                 openPostpone(s);
+//                               }}
+//                             >
+//                               Postpone
+//                             </button>
+//                           </div>
+//                         )}
+//                     </div>
+//                   ))
+//                 )}
+//               </div>
+//             </div>
+//           );
+//         })}
+//       </div>
+//     </div>
+//   );
+
+//   return (
+//     <div className="book-slot-page">
+//       <div className="page-header">
+//         <h1>Book Slots</h1>
+//         <div className="date-picker-wrap">
+//           <label className="small-label">Select Date</label>
+//           <DatePicker
+//             selected={selectedDate}
+//             onChange={(d) => setSelectedDate(d)}
+//             minDate={new Date()}
+//             dateFormat="dd MMM yyyy"
+//             className="date-input"
+//           />
+//           <div className="selected-date">
+//             Selected: <strong>{selectedDateLabel}</strong>
+//           </div>
+//         </div>
+//         <div className="header-right">
+//           {user && (
+//             <div className="logged-in-info">
+//               <span className="small">Logged in as </span>
+//               <strong>{user.name}</strong>
+//               <button
+//                 className="btn btn-logout small-logout"
+//                 onClick={handleLogout}
+//               >
+//                 Logout
+//               </button>
+//             </div>
+//           )}
+//         </div>
+//       </div>
+
+//       <div className="centres-container">
+//         {visibleCentres.map(renderCentre)}
+//       </div>
+
+//       {/* Booking modal */}
+//       {isBookingOpen && bookingCentreId && (
+//         <div className="modal-backdrop" onClick={() => setBookingOpen(false)}>
+//           <div className="modal" onClick={(e) => e.stopPropagation()}>
+//             <h3>Book Slot</h3>
+//             <form onSubmit={handleConfirmBooking}>
+//               <div className="form-row">
+//                 <label>Doctor</label>
+//                 <select
+//                   value={bookingDoctorId ?? ""}
+//                   onChange={(e) => setBookingDoctorId(e.target.value)}
+//                 >
+//                   {centres
+//                     .find((c) => c.id === bookingCentreId)
+//                     ?.doctors.map((d) => (
+//                       <option key={d.id} value={d.id}>
+//                         {d.name}
+//                       </option>
+//                     ))}
+//                 </select>
+//               </div>
+//               <div className="form-row">
+//                 <label>Time</label>
+//                 <input
+//                   type="text"
+//                   value={bookingTime}
+//                   onChange={(e) => setBookingTime(e.target.value)}
+//                   placeholder="14:00 - 14:30"
+//                 />
+//               </div>
+//               <div className="form-row">
+//                 <label>Patient Name</label>
+//                 <input
+//                   type="text"
+//                   value={bookingPatientName}
+//                   onChange={(e) => setBookingPatientName(e.target.value)}
+//                 />
+//               </div>
+//               <div className="form-row">
+//                 <label>Session Length</label>
+//                 <select
+//                   value={bookingSessionLength}
+//                   onChange={(e) =>
+//                     setBookingSessionLength(Number(e.target.value))
+//                   }
+//                 >
+//                   <option value={30}>30 mins</option>
+//                   <option value={45}>45 mins</option>
+//                   <option value={60}>1 hr</option>
+//                 </select>
+//               </div>
+//               <div className="modal-actions">
+//                 <button
+//                   type="button"
+//                   className="btn btn-secondary"
+//                   onClick={() => setBookingOpen(false)}
+//                 >
+//                   Cancel
+//                 </button>
+//                 <button type="submit" className="btn btn-primary">
+//                   Confirm
+//                 </button>
+//               </div>
+//             </form>
+//           </div>
+//         </div>
+//       )}
+
+//       {/* Postpone modal */}
+//       {isPostponeOpen && activeSlot && (
+//         <div className="modal-backdrop" onClick={() => setPostponeOpen(false)}>
+//           <div className="modal" onClick={(e) => e.stopPropagation()}>
+//             <h3>Postpone Slot</h3>
+//             <form onSubmit={confirmPostpone}>
+//               <div className="form-row">
+//                 <label>New Date</label>
+//                 <DatePicker
+//                   selected={postponeDate}
+//                   onChange={(d) => setPostponeDate(d)}
+//                   minDate={new Date()}
+//                   dateFormat="dd MMM yyyy"
+//                   className="date-input"
+//                 />
+//               </div>
+//               <div className="form-row">
+//                 <label>New Time</label>
+//                 <input
+//                   type="text"
+//                   value={postponeTime}
+//                   onChange={(e) => setPostponeTime(e.target.value)}
+//                   placeholder="14:00 - 14:30"
+//                 />
+//               </div>
+//               <div className="form-row">
+//                 <label>Session Length</label>
+//                 <select
+//                   value={postponeSessionLength}
+//                   onChange={(e) =>
+//                     setPostponeSessionLength(Number(e.target.value))
+//                   }
+//                 >
+//                   <option value={30}>30 mins</option>
+//                   <option value={45}>45 mins</option>
+//                   <option value={60}>1 hr</option>
+//                 </select>
+//               </div>
+//               <div className="modal-actions">
+//                 <button
+//                   type="button"
+//                   className="btn btn-secondary"
+//                   onClick={() => setPostponeOpen(false)}
+//                 >
+//                   Cancel
+//                 </button>
+//                 <button type="submit" className="btn btn-primary">
+//                   Confirm
+//                 </button>
+//               </div>
+//             </form>
+//           </div>
+//         </div>
+//       )}
+//     </div>
+//   );
+// }
+
+// // src/pages/BookSlotPage.tsx
+// import React, { useState, useMemo } from "react";
+// import DatePicker from "react-datepicker";
+// import { format } from "date-fns";
+// import seedrandom from "seedrandom";
+// import "react-datepicker/dist/react-datepicker.css";
+// import "./BookSlotPage.scss";
+
+// type Slot = {
+//   id: string;
+//   time: string;
+//   patientName?: string;
+//   status: "booked" | "cancelled" | "postponed";
+//   date: string;
+//   sessionLength: number;
+// };
+
+// type Doctor = {
+//   id: string;
+//   name: string;
+//   slots: Slot[];
+// };
+
+// type Centre = {
+//   id: string;
+//   name: string;
+//   doctors: Doctor[];
+// };
+
+// type Props = {
+//   doctorName?: string; // only for doctor
+// };
+
+// function makeId(prefix = "") {
+//   return (
+//     prefix + Date.now().toString(36) + Math.random().toString(36).slice(2, 7)
+//   );
+// }
+
+// const TODAY = format(new Date(), "yyyy-MM-dd");
+
+// // --- Dummy doctors and slots ---
+// const DOCTORS = [
+//   "Dr. Meera Nair",
+//   "Dr. Arun Menon",
+//   "Dr. Kavya Suresh",
+//   "Dr. Raghav Pillai",
+// ];
+
+// const DUMMY_SLOTS: string[][] = [
+//   ["09:00 - 09:30", "11:00 - 11:30"],
+//   ["10:00 - 10:30", "12:00 - 12:30"],
+//   ["09:15 - 09:45", "13:00 - 13:30"],
+//   ["14:00 - 14:30", "15:15 - 15:45"],
+// ];
+
+// function generateRandomSlots(seed: string, sessionLength: number): string[] {
+//   const rng = seedrandom(seed);
+//   const slots: string[] = [];
+//   let hour = 8;
+//   while (hour < 19) {
+//     const minute = rng() < 0.5 ? 0 : 30;
+//     const endH = hour + Math.floor((minute + sessionLength) / 60);
+//     const endM = (minute + sessionLength) % 60;
+//     if (endH >= 19) break;
+//     const timeStr = `${hour.toString().padStart(2, "0")}:${minute
+//       .toString()
+//       .padStart(2, "0")} - ${endH.toString().padStart(2, "0")}:${endM
+//       .toString()
+//       .padStart(2, "0")}`;
+//     slots.push(timeStr);
+//     hour = endH + (rng() < 0.5 ? 0 : 1);
+//     if (slots.length >= 5) break;
+//   }
+//   return slots;
+// }
+
+// export default function BookSlotPage({ doctorName }: Props) {
+//   const user = JSON.parse(localStorage.getItem("user") || "null") as {
+//     name?: string;
+//     role?: string;
+//   } | null;
+//   const isDoctor = !!doctorName;
+//   const isAdmin = user?.role === "Admin";
+
+//   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
+//   const selectedDateKey = useMemo(
+//     () => (selectedDate ? format(selectedDate, "yyyy-MM-dd") : TODAY),
+//     [selectedDate]
+//   );
+//   const selectedDateLabel = useMemo(
+//     () => (selectedDate ? format(selectedDate, "EEE, MMM d yyyy") : "No date"),
+//     [selectedDate]
+//   );
+
+//   // --- Initialize centres with doctors and dummy slots ---
+//   const [centres, setCentres] = useState<Centre[]>(() => [
+//     {
+//       id: makeId("centre_"),
+//       name: "Kochi",
+//       doctors: DOCTORS.map((d, i) => ({
+//         id: makeId("doc_"),
+//         name: d,
+//         slots: DUMMY_SLOTS[i].map((t) => ({
+//           id: makeId("slot_"),
+//           time: t,
+//           date: TODAY,
+//           status: "booked",
+//           sessionLength: 30,
+//         })),
+//       })),
+//     },
+//   ]);
+
+//   // --- Admin booking modal state ---
+//   const [isBookingOpen, setBookingOpen] = useState(false);
+//   const [bookingCentreId, setBookingCentreId] = useState<string | null>(null);
+//   const [bookingDoctorId, setBookingDoctorId] = useState<string | null>(null);
+//   const [bookingTime, setBookingTime] = useState("");
+//   const [bookingPatientName, setBookingPatientName] = useState("");
+//   const [bookingSessionLength, setBookingSessionLength] = useState(30);
+
+//   // --- Admin slot actions ---
+//   const [activeSlot, setActiveSlot] = useState<Slot | null>(null);
+//   const [isPostponeOpen, setPostponeOpen] = useState(false);
+//   const [postponeDate, setPostponeDate] = useState<Date | null>(new Date());
+//   const [postponeTime, setPostponeTime] = useState("");
+//   const [postponeSessionLength, setPostponeSessionLength] = useState(30);
+
+//   // --- Filter centres for doctor ---
+//   const visibleCentres = useMemo(() => {
+//     if (!isDoctor) return centres;
+//     return centres
+//       .map((c) => ({
+//         ...c,
+//         doctors: c.doctors.filter((d) => d.name === doctorName),
+//       }))
+//       .filter((c) => c.doctors.length > 0);
+//   }, [centres, doctorName]);
+
+//   // --- Get slots for doctor & date ---
+//   const getSlotsForDoctor = (d: Doctor, dateKey: string): Slot[] => {
+//     const existing = d.slots.filter((s) => s.date === dateKey);
+//     if (existing.length) return existing;
+//     const dummyTimes = generateRandomSlots(`${d.id}_${dateKey}`, 30);
+//     return dummyTimes.map((t) => ({
+//       id: makeId("slot_"),
+//       time: t,
+//       date: dateKey,
+//       status: "booked",
+//       sessionLength: 30,
+//     }));
+//   };
+
+//   // --- Admin handlers ---
+//   const openBookingModal = (centreId: string) => {
+//     setBookingCentreId(centreId);
+//     const centre = centres.find((c) => c.id === centreId);
+//     setBookingDoctorId(centre?.doctors[0]?.id ?? null);
+//     setBookingTime("");
+//     setBookingPatientName("");
+//     setBookingSessionLength(30);
+//     setBookingOpen(true);
+//   };
+
+//   const handleConfirmBooking = (e?: React.FormEvent) => {
+//     e?.preventDefault();
+//     if (!bookingCentreId || !bookingDoctorId || !bookingTime)
+//       return alert("Please select doctor and time.");
+
+//     const newSlot: Slot = {
+//       id: makeId("slot_"),
+//       time: bookingTime,
+//       patientName: bookingPatientName || undefined,
+//       date: selectedDateKey,
+//       status: "booked",
+//       sessionLength: bookingSessionLength,
+//     };
+
+//     setCentres((prev) =>
+//       prev.map((c) =>
+//         c.id === bookingCentreId
+//           ? {
+//               ...c,
+//               doctors: c.doctors.map((d) =>
+//                 d.id === bookingDoctorId
+//                   ? { ...d, slots: [...d.slots, newSlot] }
+//                   : d
+//               ),
+//             }
+//           : c
+//       )
+//     );
+
+//     setBookingOpen(false);
+//   };
+
+//   const handleCancel = (s: Slot) => {
+//     if (!window.confirm("Are you sure you want to cancel this slot?")) return;
+//     setCentres((prev) =>
+//       prev.map((c) => ({
+//         ...c,
+//         doctors: c.doctors.map((d) => ({
+//           ...d,
+//           slots: d.slots.map((slot) =>
+//             slot.id === s.id ? { ...slot, status: "cancelled" } : slot
+//           ),
+//         })),
+//       }))
+//     );
+//     setActiveSlot(null);
+//   };
+
+//   const openPostpone = (s: Slot) => {
+//     setActiveSlot(s);
+//     setPostponeOpen(true);
+//     setPostponeDate(new Date());
+//     setPostponeTime(s.time);
+//     setPostponeSessionLength(s.sessionLength || 30);
+//   };
+
+//   const confirmPostpone = (e?: React.FormEvent) => {
+//     e?.preventDefault();
+//     if (!activeSlot || !postponeDate || !postponeTime) return;
+
+//     const newDateKey = format(postponeDate, "yyyy-MM-dd");
+//     setCentres((prev) =>
+//       prev.map((c) => ({
+//         ...c,
+//         doctors: c.doctors.map((d) => ({
+//           ...d,
+//           slots: d.slots.map((slot) =>
+//             slot.id === activeSlot.id
+//               ? {
+//                   ...slot,
+//                   date: newDateKey,
+//                   time: postponeTime,
+//                   sessionLength: postponeSessionLength,
+//                   status: "postponed",
+//                 }
+//               : slot
+//           ),
+//         })),
+//       }))
+//     );
+
+//     setPostponeOpen(false);
+//     setActiveSlot(null);
+//   };
+
+//   const handleLogout = () => {
+//     localStorage.removeItem("user");
+//     window.location.href = "/login";
+//   };
+
+//   const renderCentre = (c: Centre) => (
+//     <div className="centre-card card" key={c.id}>
+//       <div className="centre-header">
+//         <h3>{c.name}</h3>
+//         {isAdmin && (
+//           <button
+//             className="btn-primary"
+//             onClick={() => openBookingModal(c.id)}
+//           >
+//             Book Slot
+//           </button>
+//         )}
+//       </div>
+//       <div className="doctors-list">
+//         {c.doctors.map((d) => {
+//           const slots = getSlotsForDoctor(d, selectedDateKey);
+//           return (
+//             <div className="doctor-row" key={d.id}>
+//               <div className="doctor-meta">{d.name}</div>
+//               <div className="slots">
+//                 {slots.length === 0 ? (
+//                   <div className="no-slots">No bookings</div>
+//                 ) : (
+//                   slots.map((s) => (
+//                     <div
+//                       className={`slot-pill ${s.status}`}
+//                       key={s.id}
+//                       onClick={() => {
+//                         if (isAdmin)
+//                           setActiveSlot(activeSlot?.id === s.id ? null : s);
+//                       }}
+//                     >
+//                       <span className="slot-time">{s.time}</span>
+//                       {s.patientName && (
+//                         <span className="slot-patient"> — {s.patientName}</span>
+//                       )}
+//                       {s.status === "cancelled" && (
+//                         <span className="slot-tag">Cancelled</span>
+//                       )}
+//                       {s.status === "postponed" && (
+//                         <span className="slot-tag">Postponed</span>
+//                       )}
+//                       {isAdmin && activeSlot?.id === s.id && (
+//                         <div className="slot-actions">
+//                           <button
+//                             className="btn-action cancel"
+//                             onClick={() => handleCancel(s)}
+//                           >
+//                             Cancel
+//                           </button>
+//                           <button
+//                             className="btn-action postpone"
+//                             onClick={() => openPostpone(s)}
+//                           >
+//                             Postpone
+//                           </button>
+//                         </div>
+//                       )}
+//                     </div>
+//                   ))
+//                 )}
+//               </div>
+//             </div>
+//           );
+//         })}
+//       </div>
+//     </div>
+//   );
+
+//   return (
+//     <div className="book-slot-page">
+//       <div className="page-header">
+//         <h1>Book Slots</h1>
+//         <div className="date-picker-wrap">
+//           <label className="small-label">Select Date</label>
+//           <DatePicker
+//             selected={selectedDate}
+//             onChange={(d) => setSelectedDate(d)}
+//             minDate={new Date()}
+//             dateFormat="dd MMM yyyy"
+//             className="date-input"
+//           />
+//           <div className="selected-date">
+//             Selected: <strong>{selectedDateLabel}</strong>
+//           </div>
+//         </div>
+//         <div className="header-right">
+//           {user && (
+//             <div className="logged-in-info">
+//               <span className="small">Logged in as </span>
+//               <strong>{user.name}</strong>
+//               <button
+//                 className="btn btn-logout small-logout"
+//                 onClick={handleLogout}
+//               >
+//                 Logout
+//               </button>
+//             </div>
+//           )}
+//         </div>
+//       </div>
+
+//       <div className="centres-container">
+//         {visibleCentres.map(renderCentre)}
+//       </div>
+
+//       {/* Admin booking modal */}
+//       {isBookingOpen && bookingCentreId && (
+//         <div className="modal-backdrop" onClick={() => setBookingOpen(false)}>
+//           <div className="modal" onClick={(e) => e.stopPropagation()}>
+//             <h3>Book Slot</h3>
+//             <form onSubmit={handleConfirmBooking}>
+//               <div className="form-row">
+//                 <label>Doctor</label>
+//                 <select
+//                   value={bookingDoctorId ?? ""}
+//                   onChange={(e) => setBookingDoctorId(e.target.value)}
+//                 >
+//                   {centres
+//                     .find((c) => c.id === bookingCentreId)
+//                     ?.doctors.map((d) => (
+//                       <option key={d.id} value={d.id}>
+//                         {d.name}
+//                       </option>
+//                     ))}
+//                 </select>
+//               </div>
+//               <div className="form-row">
+//                 <label>Time</label>
+//                 <input
+//                   type="text"
+//                   value={bookingTime}
+//                   onChange={(e) => setBookingTime(e.target.value)}
+//                   placeholder="14:00 - 14:30"
+//                 />
+//               </div>
+//               <div className="form-row">
+//                 <label>Patient Name</label>
+//                 <input
+//                   type="text"
+//                   value={bookingPatientName}
+//                   onChange={(e) => setBookingPatientName(e.target.value)}
+//                 />
+//               </div>
+//               <div className="form-row">
+//                 <label>Session Length</label>
+//                 <select
+//                   value={bookingSessionLength}
+//                   onChange={(e) =>
+//                     setBookingSessionLength(Number(e.target.value))
+//                   }
+//                 >
+//                   <option value={30}>30 mins</option>
+//                   <option value={45}>45 mins</option>
+//                   <option value={60}>1 hr</option>
+//                 </select>
+//               </div>
+//               <div className="modal-actions">
+//                 <button
+//                   type="button"
+//                   className="btn btn-secondary"
+//                   onClick={() => setBookingOpen(false)}
+//                 >
+//                   Cancel
+//                 </button>
+//                 <button type="submit" className="btn btn-primary">
+//                   Confirm
+//                 </button>
+//               </div>
+//             </form>
+//           </div>
+//         </div>
+//       )}
+
+//       {/* Admin postpone modal */}
+//       {isPostponeOpen && activeSlot && (
+//         <div className="modal-backdrop" onClick={() => setPostponeOpen(false)}>
+//           <div className="modal" onClick={(e) => e.stopPropagation()}>
+//             <h3>Postpone Slot</h3>
+//             <form onSubmit={confirmPostpone}>
+//               <div className="form-row">
+//                 <label>New Date</label>
+//                 <DatePicker
+//                   selected={postponeDate}
+//                   onChange={(d) => setPostponeDate(d)}
+//                   minDate={new Date()}
+//                   dateFormat="dd MMM yyyy"
+//                   className="date-input"
+//                 />
+//               </div>
+//               <div className="form-row">
+//                 <label>New Time</label>
+//                 <input
+//                   type="text"
+//                   value={postponeTime}
+//                   onChange={(e) => setPostponeTime(e.target.value)}
+//                   placeholder="14:00 - 14:30"
+//                 />
+//               </div>
+//               <div className="form-row">
+//                 <label>Session Length</label>
+//                 <select
+//                   value={postponeSessionLength}
+//                   onChange={(e) =>
+//                     setPostponeSessionLength(Number(e.target.value))
+//                   }
+//                 >
+//                   <option value={30}>30 mins</option>
+//                   <option value={45}>45 mins</option>
+//                   <option value={60}>1 hr</option>
+//                 </select>
+//               </div>
+//               <div className="modal-actions">
+//                 <button
+//                   type="button"
+//                   className="btn btn-secondary"
+//                   onClick={() => setPostponeOpen(false)}
+//                 >
+//                   Cancel
+//                 </button>
+//                 <button type="submit" className="btn btn-primary">
+//                   Confirm
+//                 </button>
+//               </div>
+//             </form>
+//           </div>
+//         </div>
+//       )}
+//     </div>
+//   );
+// }
 
 // // src/pages/BookSlotPage.tsx
 // import React, { useMemo, useState } from "react";
